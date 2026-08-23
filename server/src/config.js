@@ -19,6 +19,11 @@ export const config = {
 
   databaseFile: process.env.DATABASE_FILE?.trim() || "./data/gitgrade.db",
 
+  // When set, the app talks to Turso instead of a local file. Required on any
+  // host with a read-only filesystem (Vercel, most serverless platforms).
+  tursoUrl: process.env.TURSO_DATABASE_URL?.trim() || null,
+  tursoAuthToken: process.env.TURSO_AUTH_TOKEN?.trim() || null,
+
   corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
     .split(",")
     .map((origin) => origin.trim())

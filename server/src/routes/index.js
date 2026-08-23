@@ -40,43 +40,43 @@ apiRouter.post("/compare", async (req, res, next) => {
 });
 
 /** GET /api/repos/:owner/:repo - the stored analysis, so results are shareable by URL. */
-apiRouter.get("/repos/:owner/:repo", (req, res, next) => {
+apiRouter.get("/repos/:owner/:repo", async (req, res, next) => {
   try {
     const { slug } = parseRepoUrl(`${req.params.owner}/${req.params.repo}`);
-    const stored = findLatest(slug);
+    const stored = await findLatest(slug);
 
     if (!stored) {
       throw notFound(`${slug} has not been analysed yet. Run an analysis first.`);
     }
 
-    res.json({ ...stored, cached: true, timeline: scoreTimeline(slug) });
+    res.json({ ...stored, cached: true, timeline: await scoreTimeline(slug) });
   } catch (error) {
     next(error);
   }
 });
 
 /** GET /api/history?limit=12 - most recently analysed repositories. */
-apiRouter.get("/history", (req, res, next) => {
+apiRouter.get("/history", async (req, res, next) => {
   try {
-    res.json({ items: listHistory(clampLimit(req.query.limit, 12, 50)) });
+    res.json({ items: await listHistory(clampLimit(req.query.limit, 12, 50)) });
   } catch (error) {
     next(error);
   }
 });
 
 /** GET /api/leaderboard?limit=20 - highest scoring repositories seen so far. */
-apiRouter.get("/leaderboard", (req, res, next) => {
+apiRouter.get("/leaderboard", async (req, res, next) => {
   try {
-    res.json({ items: listLeaderboard(clampLimit(req.query.limit, 20, 100)) });
+    res.json({ items: await listLeaderboard(clampLimit(req.query.limit, 20, 100)) });
   } catch (error) {
     next(error);
   }
 });
 
 /** GET /api/stats - aggregate counters for the landing page. */
-apiRouter.get("/stats", (req, res, next) => {
+apiRouter.get("/stats", async (req, res, next) => {
   try {
-    res.json(readStats());
+    res.json(await readStats());
   } catch (error) {
     next(error);
   }
@@ -94,7 +94,7 @@ apiRouter.get("/badge/:owner/:repo.svg", async (req, res, next) => {
       ...(req.query.label ? { label: String(req.query.label).slice(0, 40) } : {}),
     };
 
-    let stored = findLatest(target.slug);
+    let stored = await findLatest(target.slug);
     if (!stored && req.query.analyse === "1") {
       stored = await runAnalysis(target, { skipAi: true });
     }
@@ -102,6 +102,9 @@ apiRouter.get("/badge/:owner/:repo.svg", async (req, res, next) => {
     // Badges are embedded in READMEs, so they must never render an error page.
     res.type("image/svg+xml");
     res.set("Cache-Control", "public, max-age=1800, s-maxage=1800");
+    // Helmet defaults this to same-origin, which blocks the <img> once the API
+    // and the frontend are on different origins in production.
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
     res.send(stored ? badgeForScore(stored.rubric, options) : notAnalyzedBadge(options));
   } catch (error) {
     next(error);

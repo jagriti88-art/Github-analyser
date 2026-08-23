@@ -49,7 +49,7 @@ Security & Hygiene       100%   ####################
 | Animation | Framer Motion | Score ring, radar, staggered reveals |
 | Icons | lucide-react | Tree-shakeable SVG set |
 | Backend | Node 22+, Express 5 | Native ESM, async error handling |
-| Database | `node:sqlite` | Built into Node — **zero dependencies** |
+| Database | libSQL / SQLite | One client for a local file and hosted Turso |
 | AI | Groq SDK | JSON-mode structured output |
 | HTTP | Axios | Interceptable, good timeout support |
 | Security | Helmet, express-rate-limit, CORS allowlist | |
@@ -271,12 +271,52 @@ Network calls are not mocked — the tested units are pure by design.
 
 ---
 
-## Deployment notes
+## Deployment
 
-- Set `CORS_ORIGIN` to your deployed frontend origin.
-- Set `VITE_API_BASE_URL` in `client/.env` to your API origin, then rebuild.
-- `DATABASE_FILE` must live on a persistent volume; SQLite on an ephemeral filesystem loses history on every deploy.
-- Serve the SPA with a catch-all rewrite to `index.html`, or `/r/owner/repo` will 404 on refresh.
+The repository is configured for **Vercel**, which serves the SPA and runs the API as a
+serverless function on the same domain — so requests are same-origin and CORS never engages.
+
+`api/index.js` exports the same Express app that `server/index.js` runs locally; only the
+lifecycle differs.
+
+### Database
+
+Vercel's filesystem is read-only, so file-based SQLite cannot be used in production. The
+data layer talks **libSQL**, which speaks SQLite either way:
+
+| Environment | `TURSO_DATABASE_URL` | Storage |
+| --- | --- | --- |
+| Local | unset | `./data/gitgrade.db` file |
+| Vercel | set | [Turso](https://turso.tech), over HTTP |
+
+The schema is created on demand and memoised per instance, so cold starts do not re-run it.
+
+### Steps
+
+1. Create a free Turso database and copy its URL and auth token.
+2. Import the repository on Vercel — the root `vercel.json` supplies the build and routing.
+3. Set these environment variables in the Vercel project:
+
+   ```
+   GROQ_API_KEY         GITHUB_TOKEN
+   TURSO_DATABASE_URL   TURSO_AUTH_TOKEN
+   ```
+
+   `CORS_ORIGIN` and `VITE_API_BASE_URL` are not needed — everything is same-origin.
+4. Deploy.
+
+### Serverless caveats
+
+- The in-memory TTL cache and rate limiter are per-instance, so both are less effective than
+  on a long-running server. Turso still prevents redundant GitHub calls for stored repositories.
+- Analysis can take 15–30 seconds, so the function is configured with `maxDuration: 60`.
+
+### Other hosts
+
+Any platform that runs a long-lived Node process works unchanged — leave `TURSO_DATABASE_URL`
+unset, point `DATABASE_FILE` at a persistent volume, and set `CORS_ORIGIN` plus
+`VITE_API_BASE_URL` since the two origins will differ. Serve the SPA with a catch-all rewrite
+to `index.html`, or `/r/owner/repo` will 404 on refresh.
 
 ---
 

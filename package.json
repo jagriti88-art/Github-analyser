@@ -20,7 +20,8 @@
     "start": "npm --prefix server start",
     "lint": "npm --prefix client run lint",
     "test": "npm --prefix server test",
-    "setup": "node scripts/setup.js"
+    "setup": "node scripts/setup.js",
+    "vercel-build": "npm --prefix client run build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

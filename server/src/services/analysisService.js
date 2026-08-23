@@ -40,14 +40,15 @@ export async function runAnalysis(target, { refresh = false, skipAi = false } = 
   cache.set(cacheKey, payload);
 
   try {
-    saveAnalysis(payload);
+    await saveAnalysis(payload);
+    // Attach the historical trend once the current run is recorded.
+    payload.timeline = await scoreTimeline(cacheKey);
   } catch (error) {
     // Persistence is a convenience, never a reason to fail the request.
     console.error("[db] failed to store analysis:", error.message);
+    payload.timeline = [];
   }
 
-  // Attach the historical trend once the current run is recorded.
-  payload.timeline = scoreTimeline(cacheKey);
   return payload;
 }
 
