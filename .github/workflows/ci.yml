@@ -7,30 +7,24 @@ on:
     branches: [main]
 
 jobs:
-  server:
-    name: Server tests
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm install
-        working-directory: server
-      - run: npm test
-        working-directory: server
 
-  client:
-    name: Client lint and build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-        working-directory: client
-      - run: npm run lint
-        working-directory: client
-      - run: npm run build
-        working-directory: client
+          cache: npm
+
+      # One install at the root covers both workspaces.
+      - run: npm ci
+
+      - name: Server tests
+        run: npm test
+
+      - name: Client lint
+        run: npm run lint
+
+      - name: Client build
+        run: npm run build

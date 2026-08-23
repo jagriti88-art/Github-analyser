@@ -78,21 +78,30 @@ export default function Home() {
     if (result?.metrics.repo.slug.toLowerCase() === `${owner}/${repo}`.toLowerCase()) return;
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
-    fetchStoredAnalysis(owner, repo)
-      .then((data) => !cancelled && setResult(data))
-      .catch((caught) => {
-        if (cancelled) return;
-        if (caught.status === 404) return analyzeRepository(`${owner}/${repo}`).then((data) => {
-          if (!cancelled) setResult(data);
-          refreshSidebars();
-        });
-        throw caught;
-      })
-      .catch((caught) => !cancelled && setError(caught.message))
-      .finally(() => !cancelled && setLoading(false));
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        let data;
+        try {
+          data = await fetchStoredAnalysis(owner, repo);
+        } catch (caught) {
+          // Never analysed before - grade it now rather than showing a dead end.
+          if (caught.status !== 404) throw caught;
+          data = await analyzeRepository(`${owner}/${repo}`);
+          if (!cancelled) refreshSidebars();
+        }
+        if (!cancelled) setResult(data);
+      } catch (caught) {
+        if (!cancelled) setError(caught.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
 
     return () => {
       cancelled = true;
