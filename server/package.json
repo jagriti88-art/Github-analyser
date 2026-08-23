@@ -1,0 +1,29 @@
+{
+  "name": "gitgrade-server",
+  "version": "1.0.0",
+  "description": "Express API that scores a GitHub repository against a deterministic rubric and layers an AI review on top.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "groq-sdk": "^0.37.0",
+    "helmet": "^8.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

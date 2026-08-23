@@ -1,0 +1,28 @@
+{
+  "name": "gitgrade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Score any public GitHub repository against a transparent rubric, then let an LLM prioritise what to fix.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "lint": "npm --prefix client run lint",
+    "test": "npm --prefix server test",
+    "setup": "node scripts/setup.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

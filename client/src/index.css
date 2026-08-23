@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Surface + accent scale used across the app. */
+  --color-ink-950: #070b14;
+  --color-ink-900: #0b1120;
+  --color-ink-850: #111a2e;
+  --color-ink-800: #16203a;
+  --color-ink-700: #1f2c4d;
+  --color-ink-500: #64748b;
+  --color-ink-300: #94a3b8;
+  --color-ink-100: #e2e8f0;
+
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+
+  --color-good: #34d399;
+  --color-warn: #fbbf24;
+  --color-bad: #f87171;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 15% -10%, rgba(59, 130, 246, 0.16), transparent 60%),
+      radial-gradient(50rem 35rem at 90% 0%, rgba(139, 92, 246, 0.13), transparent 55%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    @apply bg-brand-500/40;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-white/10 bg-ink-900/70 backdrop-blur-sm shadow-xl shadow-black/30;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-ink-300;
+  }
+}
+
+/* The score ring animates from 0 to its final value on mount. */
+@keyframes ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
