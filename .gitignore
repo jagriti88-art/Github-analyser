@@ -40,3 +40,8 @@ data/
 *.db
 *.db-shm
 *.db-wal
+
+# Local dev server logs
+.server.log
+.server.err
+.vite.log
