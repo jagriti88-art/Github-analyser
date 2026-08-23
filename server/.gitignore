@@ -34,3 +34,9 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# SQLite database
+data/
+*.db
+*.db-shm
+*.db-wal

@@ -4,7 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 import { config } from "./config.js";
-import { analyzeRouter } from "./routes/analyze.js";
+import { apiRouter } from "./routes/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
@@ -25,12 +25,20 @@ export function createApp() {
   );
 
   // Each analysis costs up to 8 GitHub calls plus an LLM round trip.
-  const analyzeLimiter = rateLimit({
+  const writeLimiter = rateLimit({
     windowMs: 60_000,
-    limit: 10,
+    limit: 12,
     standardHeaders: "draft-7",
     legacyHeaders: false,
     message: { error: "Too many analyses from this IP. Please wait a minute and try again." },
+  });
+
+  // Reads hit SQLite only, so they can be far more generous.
+  const readLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 120,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
   });
 
   app.get("/health", (req, res) => {
@@ -42,7 +50,9 @@ export function createApp() {
     });
   });
 
-  app.use("/api", analyzeLimiter, analyzeRouter);
+  app.post("/api/analyze", writeLimiter);
+  app.post("/api/compare", writeLimiter);
+  app.use("/api", readLimiter, apiRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

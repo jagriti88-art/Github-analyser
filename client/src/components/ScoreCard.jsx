@@ -40,7 +40,41 @@ function Stat({ icon: Icon, label, value }) {
   );
 }
 
-export default function ScoreCard({ metrics, rubric, analyzedAt, cached }) {
+/** Sparkline of past scores, shown once a repo has been analysed more than once. */
+function ScoreTimeline({ timeline }) {
+  if (!timeline || timeline.length < 2) return null;
+
+  const scores = timeline.map((point) => point.score);
+  const min = Math.min(...scores, 0);
+  const max = Math.max(...scores, 100);
+  const points = scores
+    .map((score, index) => {
+      const x = (index / (scores.length - 1)) * 100;
+      const y = 24 - ((score - min) / (max - min || 1)) * 24;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  const delta = scores.at(-1) - scores[0];
+
+  return (
+    <div className="mt-4 flex items-center gap-3">
+      <svg viewBox="0 0 100 24" preserveAspectRatio="none" className="h-6 w-24" aria-hidden="true">
+        <polyline points={points} fill="none" strokeWidth="2" vectorEffect="non-scaling-stroke"
+          className={delta >= 0 ? "stroke-good" : "stroke-bad"} strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+      <span className="text-xs text-ink-500">
+        {scores.length} analyses,{" "}
+        <span className={delta >= 0 ? "text-good" : "text-bad"}>
+          {delta >= 0 ? "+" : ""}{delta}
+        </span>{" "}
+        since first
+      </span>
+    </div>
+  );
+}
+
+export default function ScoreCard({ metrics, rubric, analyzedAt, cached, timeline }) {
   const { repo, social, languages } = metrics;
   const tone = scoreTone(rubric.score);
 
@@ -114,6 +148,8 @@ export default function ScoreCard({ metrics, rubric, analyzedAt, cached }) {
               </div>
             </div>
           ) : null}
+
+          <ScoreTimeline timeline={timeline} />
         </div>
       </div>
 

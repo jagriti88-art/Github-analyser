@@ -17,6 +17,8 @@ export const config = {
 
   cacheTtlMs: toInt(process.env.CACHE_TTL_SECONDS, 600) * 1000,
 
+  databaseFile: process.env.DATABASE_FILE?.trim() || "./data/gitgrade.db",
+
   corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:5173,http://localhost:3000")
     .split(",")
     .map((origin) => origin.trim())
