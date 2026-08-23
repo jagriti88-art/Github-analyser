@@ -14,7 +14,17 @@ function buildClient() {
   }
 
   // Local file mode - make sure the directory exists before opening it.
-  mkdirSync(dirname(config.databaseFile), { recursive: true });
+  try {
+    mkdirSync(dirname(config.databaseFile), { recursive: true });
+  } catch (error) {
+    // Serverless filesystems are read-only, so this is almost always a missing
+    // TURSO_DATABASE_URL rather than a genuine disk problem. Say so plainly.
+    throw new Error(
+      `Cannot create the local database directory (${error.code}). ` +
+        "On a read-only host such as Vercel, set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN."
+    );
+  }
+
   return createClient({ url: `file:${config.databaseFile}` });
 }
 
