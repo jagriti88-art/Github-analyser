@@ -11,11 +11,16 @@ const client = axios.create({
 
 /** Surface the API's own message when there is one - it is written to be read. */
 function toFriendlyError(error) {
-  const message =
-    error.response?.data?.error ??
+  const data = error.response?.data;
+  const base =
+    data?.error ??
     (error.code === "ECONNABORTED"
       ? "The analysis timed out. Try again in a moment."
       : "Could not reach the GitGrade API. Is the server running on port 5000?");
+
+  // The server attaches a `reference` to unexpected failures so the cause is
+  // visible without digging through deployment logs.
+  const message = data?.reference ? `${base} (${data.reference})` : base;
 
   const wrapped = new Error(message);
   wrapped.status = error.response?.status;

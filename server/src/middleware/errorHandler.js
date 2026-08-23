@@ -17,6 +17,10 @@ export function errorHandler(error, req, res, next) {
   res.status(status).json({
     error: isKnown ? error.message : "Something went wrong while analysing this repository.",
     ...(error.details ? { details: error.details } : {}),
+    // Unexpected failures are opaque to whoever hits them, and on a deployed host
+    // the logs may not be to hand. Name and code identify the fault without
+    // exposing a stack trace or internal paths.
+    ...(isKnown ? {} : { reference: [error.name, error.code].filter(Boolean).join(" / ") || "Error" }),
     ...(config.nodeEnv === "development" && !isKnown ? { stack: error.stack } : {}),
   });
 }
